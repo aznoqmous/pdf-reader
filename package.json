@@ -1,0 +1,19 @@
+{
+  "name": "pdf-reader",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "webpack --watch --mode development",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "css-loader": "^6.7.2",
+    "mini-css-extract-plugin": "^2.7.1",
+    "node-sass": "^8.0.0",
+    "postcss-loader": "^7.0.2",
+    "sass-loader": "^13.2.0"
+  }
+}

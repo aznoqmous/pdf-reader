@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="dist/pdf.min.js"></script>
+    <link rel="stylesheet" href="dist/main.min.css">
+    <script src="dist/main.min.js" defer></script>
+</head>
+<style>
+    i {
+        position: absolute;
+        background: yellow;
+        transform: translate(0, -100%);
+        transition: all 0.2s ease;
+        cursor: pointer;
+        font-style: normal;
+        font-weight: bold;
+        font-family: sans-serif;
+        padding: 0.1rem 0.2rem;
+    }
+    i:hover {
+        transform: translate(0, -100%) scale(1.2);
+    }
+    #book {
+        opacity: 0;
+        transition: all 1s ease;
+    }
+    #book.active {
+        opacity: 1;
+    }
+</style>
+<body>
+    <button id="prev">prev</button>
+    <button id="next">next</button>
+    <div id="book">
+    </div>
+</body>
+</html>
