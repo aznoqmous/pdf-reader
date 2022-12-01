@@ -4,7 +4,11 @@ import PdfReader from "./PdfReader.js"
 import "../scss/style.scss"
 import HtmlUtils from "./HtmlUtils"
 
-
+async function sleep(ms){
+    return new Promise(res => {
+        setTimeout(()=> res(), ms)
+    })
+}
 async function main(){
     let reader = new PdfReader("astrid.pdf", {
         scale: 1
@@ -20,10 +24,34 @@ async function main(){
     document.getElementById('next').addEventListener('click', ()=> fb.next())
     document.getElementById('prev').addEventListener('click', ()=> fb.prev())
 
-    fb.addEventListener('showPage', (e)=> {
+    fb.addEventListener('showPage', async (e)=> {
+        await sleep(fb.opts.transition)
+
         let pageContainer = e.page
         let page = e.page.page
-        pageContainer.page.getTextContent()
+        page.getAnnotations()
+        .then(content => {
+            content.map(annotation => {
+                let marker = document.createElement('i')
+                let rect = pageContainer.getBoundingClientRect()
+                let annotationRect= {
+                    x: annotation.rect[0],
+                    y: annotation.rect[1],
+                    width: annotation.rect[2],
+                    height: annotation.rect[3],
+                }
+                marker.style.position = "absolute"
+                marker.style.left = (annotationRect.x * reader.opts.scale) + "px"
+                marker.style.top = (rect.height - annotationRect.y * reader.opts.scale) + "px"
+                marker.style.width = (annotationRect.width - annotationRect.x - 8) * reader.opts.scale + "px"
+                marker.style.height = (annotationRect.height - annotationRect.y - 3) * reader.opts.scale + "px"
+                marker.style.fontSize = 0.5 * reader.opts.scale + "rem"
+                marker.innerHTML = annotation.fieldName
+                pageContainer.appendChild(marker)
+            })
+        })
+       
+        page.getTextContent()
         .then(content => {
             let textItems = content.items
             if(page.markers) return;
