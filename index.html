@@ -10,19 +10,25 @@
     <script src="dist/main.min.js" defer></script>
 </head>
 <style>
+    body {
+        background: #798c53;
+    }
     i {
         position: absolute;
-        border: 1px solid red;
-        transform: translate(0, -100%);
-        transition: all 0.2s ease;
+        background: #798c53;
+        color: white;
+        transition: all 0.1s ease;
         cursor: pointer;
         font-style: normal;
         font-weight: bold;
         font-family: sans-serif;
         padding: 0.1rem 0.2rem;
+        border-radius: 2px;
+        transform: translate(0, -100%) scale(1);
+        animation: appear 0.2s ease forwards;
     }
     i:hover {
-        border: 1px solid yellow;
+        transform: translate(0, -100%) scale(1.1) !important;
     }
     #book {
         opacity: 0;
@@ -30,6 +36,14 @@
     }
     #book.active {
         opacity: 1;
+    }
+    @keyframes appear {
+        0% {
+            transform: translate(0, -100%) scale(0);
+        }
+        100% {
+            transform: translate(0, -100%) scale(1);
+        }
     }
 </style>
 <body>

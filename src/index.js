@@ -11,7 +11,7 @@ async function sleep(ms){
 }
 async function main(){
     let reader = new PdfReader("astrid.pdf", {
-        scale: 1
+        scale: 1.1
     })
     await reader.loadDocument()
     
@@ -75,7 +75,6 @@ async function main(){
     })
 
     Promise.allSettled(
-
         Array.for(reader.numPages, async (i)=>{
             let page = await reader.loadPage(i+1)
             let pageContainer = HtmlUtils.create('div', {className: "page-container" })
