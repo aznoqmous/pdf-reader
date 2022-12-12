@@ -68,8 +68,9 @@ export default class PdfReader {
         page.canvas = HtmlUtils.create("canvas")
         page.ctx = page.canvas.getContext("2d")
         page.viewport = page.getViewport({ scale: this.opts.scale })
-        page.canvas.width = Math.floor(page.viewport.width * this.opts.outputScale)
-        page.canvas.height = Math.floor(page.viewport.height * this.opts.outputScale)
+        console.log(page.viewport)
+        page.canvas.width = Math.floor(page.viewport.width)
+        page.canvas.height = Math.floor(page.viewport.height)
         page.canvas.style.width = Math.floor(page.viewport.width) + "px"
         page.canvas.style.height = Math.floor(page.viewport.height) + "px"
         page.renderContext = {
