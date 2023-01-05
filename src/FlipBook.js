@@ -8,7 +8,8 @@ export default class FlipBook extends EventTarget {
         this.opts = Object.assign({
             pageWidth: "10rem",
             pageHeight: "15rem",
-            transition: "1000"
+            transition: "1000",
+            zoom: 1
         }, opts)
         window.flipBook = this
         this.currentIndex = 0
@@ -18,13 +19,22 @@ export default class FlipBook extends EventTarget {
     build(){
         this.container.classList.add('flip-book')
         this.pages = [...this.container.children]
-        this.container.style.width = `calc(${this.opts.pageWidth} * 2)`
-        this.container.style.height = this.opts.pageHeight
-        
+        this.resize(this.opts.pageWidth, this.opts.pageHeight)
         if(this.pages.length){
             this.pages[0].classList.add('active')
             this.pages[0].classList.add('transition')
         }
+    }
+
+    resize(width, height){
+        this.width = width
+        this.height = height
+        this.container.style.width = `calc(${width} * ${2*this.opts.zoom})`
+        this.container.style.height = `calc(${height} * ${this.opts.zoom})`
+    }
+    zoom(value){
+        this.opts.zoom = value
+        this.resize(this.width, this.height)
     }
 
     next(){

@@ -19,7 +19,8 @@
     align-items: center;
     border: 1px solid #eee;
     backface-visibility: hidden;
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.2); }
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.2);
+    overflow: hidden; }
     .flip-book > *.transition {
       transition: transform 1s ease; }
     .flip-book > *.hidden {
@@ -35,4 +36,10 @@
       transform: rotate3d(0, 1, 0, -180deg) translate(50%, 0); }
       .flip-book > *:nth-child(2n+1).active {
         transform: rotate3d(0, 1, 0, 0deg) translate(50%, 0); }
+
+.controls-container {
+  display: flex;
+  gap: 1rem; }
+  .controls-container .zoom-container {
+    display: flex; }
 

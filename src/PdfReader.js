@@ -1,107 +1,97 @@
-import { build } from "../dist/pdf.min"
+import FlipBook from "./FlipBook"
 import HtmlUtils from "./HtmlUtils"
-import MathUtils from "./MathUtils"
-
-const pdfjsLib = window['pdfjs-dist/build/pdf']
+import Pdf from "./Pdf"
 
 export default class PdfReader {
-    constructor(filePath, opts={}){
-        this.filePath = filePath
-        this.pageIndex = 0
-        this.pdf = null
-        this.pages = {}
+    constructor(file, container, opts={}){
+        this.file = file
+        this.container = container
         this.opts = Object.assign({
-            container: document.body,
-            scale: 1,
-            outputScale: window.devicePixelRatio || 1
-        },
-        opts)
-
+            prevLang: "prev",
+            nextLang: "next"
+        }, opts)
+        this.reader = new Pdf(this.file, {
+            scale: 1
+        })
         this.build()
         this.bind()
     }
 
     build(){
-        this.toolBar = HtmlUtils.create("div", {class: "pdf-toolbar"}, this.opts.container)
-        //this.prevButton = HtmlUtils.create("button", {class: "pdf-prev", innerHTML: "Prev"}, this.toolBar)
-        //this.nextButton = HtmlUtils.create("button", {class: "pdf-next", innerHTML: "Next"}, this.toolBar)
-        this.pageContainer = HtmlUtils.create("div", {class: "pdf-container"}, this.opts.container)
-    }
+        this.controlsContainer = HtmlUtils.create('div', {className: "controls-container" }, this.container)
+        
+        this.prevButton = HtmlUtils.create('button', {className: "prev-control", innerHTML: this.opts.prevLang}, this.controlsContainer)
+        this.nextButton = HtmlUtils.create('button', {className: "next-control", innerHTML: this.opts.nextLang}, this.controlsContainer)
+        this.zoomContainer = HtmlUtils.create('div', {className: "zoom-container"}, this.controlsContainer)
+        this.minusZoom = HtmlUtils.create('button', {className: "minus-zoom", innerHTML: "-"}, this.zoomContainer)
+        this.zoomValue = HtmlUtils.create('div', {className: "zoom-value", innerHTML: Math.floor(this.reader.opts.scale * 100) + "%"}, this.zoomContainer)
+        this.plusZoom = HtmlUtils.create('button', {className: "plus-zoom", innerHTML: "+"}, this.zoomContainer)
 
+        this.flipBookContainer = HtmlUtils.create('div', {className: "flipbook-container" }, this.container)
+    }
+    
     bind(){
-        //this.prevButton.addEventListener('click', ()=>{ this.prevPage() })
-        //this.nextButton.addEventListener('click', ()=>{ this.nextPage() })
-    }
-
-    get numPages(){
-        return this.pdf.numPages || 0
-    }
-
-    /* symlink */
-    async loadDocument(){
-        return await this.getDocument()
-    }
-    async getDocument(){
-        return new Promise(res => {
-            if(this.pdf) return res(this.pdf)
-            pdfjsLib.getDocument(this.filePath).promise.then(pdf => {
-                this.pdf = pdf
-                res(this.pdf)
+        this.prevButton.addEventListener('click', ()=>{
+            this.flipBook.prev()
+            this.flipBook.getActivePages().filter(page => page).map(pageContainer => {
+                pageContainer.innerHTML = ""
+                pageContainer.appendChild(this.reader.createPageCanvas(pageContainer.page))
+            })
+        })
+        this.nextButton.addEventListener('click', ()=>{
+            this.flipBook.next()
+            this.flipBook.getActivePages().filter(page => page).map(pageContainer => {
+                pageContainer.innerHTML = ""
+                pageContainer.appendChild(this.reader.createPageCanvas(pageContainer.page))
+            })
+        })
+        this.minusZoom.addEventListener('click', ()=>{
+            this.reader.opts.scale -= 0.1
+            if(this.reader.opts.scale <= 0) this.reader.opts.scale = 0.1
+            this.zoomValue.innerHTML = Math.floor(this.reader.opts.scale * 100) + "%"
+            this.flipBook.zoom(this.reader.opts.scale)
+            this.flipBook.getActivePages().filter(page => page).map(pageContainer => {
+                pageContainer.innerHTML = ""
+                pageContainer.appendChild(this.reader.createPageCanvas(pageContainer.page))
+            })
+        })
+        this.plusZoom.addEventListener('click', ()=>{
+            this.reader.opts.scale += 0.1
+            this.zoomValue.innerHTML = Math.floor(this.reader.opts.scale * 100) + "%"
+            this.flipBook.zoom(this.reader.opts.scale)
+            this.flipBook.getActivePages().filter(page => page).map(pageContainer => {
+                pageContainer.innerHTML = ""
+                pageContainer.appendChild(this.reader.createPageCanvas(pageContainer.page))
             })
         })
     }
 
-    async getPage(index){
-        let pdf = await this.getDocument()
-        return pdf.getPage(index)
-    }
-
-    async getPageCanvas(index){
-        let page = await this.getPage(index)
-        return new Promise(res => {
-            if(page.canvas) return res(page.canvas)
-            res(this.createPageCanvas(page))
+    async load(){
+        await this.reader.loadDocument()
+        this.canvas = await this.reader.getPageCanvas(1)
+        this.flipBook = new FlipBook(this.flipBookContainer, {
+            pageWidth: this.canvas.style.width,
+            pageHeight: this.canvas.style.height
         })
-    }
 
-    createPageCanvas(page){
-        page.canvas = HtmlUtils.create("canvas")
-        page.ctx = page.canvas.getContext("2d")
-        page.viewport = page.getViewport({ scale: this.opts.scale })
-        console.log(page.viewport)
-        page.canvas.width = Math.floor(page.viewport.width)
-        page.canvas.height = Math.floor(page.viewport.height)
-        page.canvas.style.width = Math.floor(page.viewport.width) + "px"
-        page.canvas.style.height = Math.floor(page.viewport.height) + "px"
-        page.renderContext = {
-            canvasContext: page.ctx,
-            viewport: page.viewport
-        }
-        page.render(page.renderContext)
-        return page.canvas
-    }
-
-    async loadPage(index){
-        return new Promise(res => {
-            if(this.pages[index]) return res(this.pages[index])
-            this.getPage(index).then(page => {
-                this.pages[index] = page
-                return res(this.pages[index])
+        await Promise.allSettled(
+            Array.for(this.reader.numPages, async (i)=>{
+                let page = await this.reader.loadPage(i+1)
+                let pageContainer = HtmlUtils.create('div', {className: "page-container" })
+                pageContainer.appendChild(this.reader.createPageCanvas(page))
+                this.flipBook.addPage(pageContainer)
+                pageContainer.page = page
             })
-        })
+        )
+
+        this.container.classList.add('active')
     }
 
-    async nextPage(){
-        this.pageIndex++
-        this.pageIndex = MathUtils.minmax(this.pageIndex, 0, this.numPages)
-        let canvas = await this.getPageCanvas(this.pageIndex+1)
-        this.pageContainer.appendChild(canvas)
-    }
-    async prevPage(){
-        this.pageIndex--
-        this.pageIndex = MathUtils.minmax(this.pageIndex, 0, this.numPages)
-        let canvas = await this.getPageCanvas(this.pageIndex+1)
-        this.pageContainer.appendChild(canvas)
-
+    async loadPage(i){
+        let page = await this.reader.loadPage(i+1)
+        let pageContainer = HtmlUtils.create('div', {className: "page-container" })
+        pageContainer.appendChild(this.reader.createPageCanvas(page))
+        this.flipBook.addPage(pageContainer)
+        pageContainer.page = page
     }
 }

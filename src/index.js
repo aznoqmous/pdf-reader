@@ -1,16 +1,22 @@
 import "./extensions"
 import FlipBook from "./FlipBook.js"
-import PdfReader from "./PdfReader.js"
+import Pdf from "./Pdf.js"
 import "../scss/style.scss"
 import HtmlUtils from "./HtmlUtils"
+import PdfReader from "./PdfReader"
 
-async function sleep(ms){
-    return new Promise(res => {
-        setTimeout(()=> res(), ms)
-    })
-}
+let pdfReader = new PdfReader(
+    "astrid.pdf", 
+    document.getElementById('book'),
+    {
+        prevLang: "Page précédente",
+        nextLang: "Page suivante"
+    }
+)
+pdfReader.load()
+
 async function main(){
-    let reader = new PdfReader("astrid.pdf", {
+    let reader = new Pdf("astrid.pdf", {
         scale: 1.1
     })
     await reader.loadDocument()
@@ -90,4 +96,4 @@ async function main(){
 
 }
 
-main()
+//main()
