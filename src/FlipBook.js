@@ -8,7 +8,7 @@ export default class FlipBook extends EventTarget {
         this.opts = Object.assign({
             pageWidth: "10rem",
             pageHeight: "15rem",
-            transition: "1000",
+            transition: 500,
             zoom: 1
         }, opts)
         window.flipBook = this
@@ -26,20 +26,36 @@ export default class FlipBook extends EventTarget {
         }
     }
 
-    resize(width, height){
+    async resize(width, height){
         this.width = width
         this.height = height
         this.container.style.width = `calc(${width} * ${2*this.opts.zoom})`
         this.container.style.height = `calc(${height} * ${this.opts.zoom})`
+        await sleep(this.opts.transition + 100)
+        this.container.style.width = Math.floor(this.container.getBoundingClientRect().width/2)*2 + "px"
+        this.container.style.height = Math.floor(this.container.getBoundingClientRect().height) + "px"
     }
-    zoom(value){
+    async zoom(value){
         this.opts.zoom = value
-        this.resize(this.width, this.height)
+        await this.resize(this.width, this.height)
     }
 
-    next(){
+    goToPage(index){
+        if(index == this.currentIndex) return;
+        let isNext = index > this.currentIndex
         this.clear()
 
+        if(isNext) this.clearNext()
+        else this.clearPrev()
+
+        this.currentIndex = index
+        this.currentIndex = MathUtils.minmax(this.currentIndex, 0, Math.ceil(this.pages.length / 2))
+
+        if(isNext) this.showNext()
+        else this.showPrev()
+    }
+
+    clearNext(){
         let previousPages = this.getActivePages()
         if(previousPages && previousPages.length){
             if(previousPages[0]) {
@@ -51,10 +67,8 @@ export default class FlipBook extends EventTarget {
                 this.dispatchEvent(new HidePageEvent(previousPages[1]))
             }
         }
-
-        this.currentIndex++
-        this.currentIndex = MathUtils.minmax(this.currentIndex, 0, Math.ceil(this.pages.length / 2))
-
+    }
+    showNext(){
         let activePages = this.getActivePages()
         if(activePages && activePages.length){
             if(activePages[0]) {
@@ -71,10 +85,8 @@ export default class FlipBook extends EventTarget {
             }
         }
     }
-    prev(){
-        if(!this.currentIndex) return;
-        this.clear()
 
+    clearPrev(){
         let previousPages = this.getActivePages()
         if(previousPages && previousPages.length){
             if(previousPages[0]) {
@@ -87,9 +99,8 @@ export default class FlipBook extends EventTarget {
                 this.dispatchEvent(new HidePageEvent(previousPages[1]))
             }
         }
-
-        this.currentIndex--
-        this.currentIndex = MathUtils.minmax(this.currentIndex, 0, Math.ceil(this.pages.length / 2))
+    }
+    showPrev(){
         let activePages = this.getActivePages()
         if(activePages && activePages.length){
             if(activePages[0]) {
@@ -102,6 +113,28 @@ export default class FlipBook extends EventTarget {
                 this.dispatchEvent(new ShowPageEvent(activePages[1]))
             }
         }
+    }
+
+    next(){
+        this.clear()
+
+        this.clearNext()
+
+        this.currentIndex++
+        this.currentIndex = MathUtils.minmax(this.currentIndex, 0, Math.ceil(this.pages.length / 2))
+
+        this.showNext()
+    }
+    prev(){
+        if(!this.currentIndex) return;
+        this.clear()
+
+        this.clearPrev()
+
+        this.currentIndex--
+        this.currentIndex = MathUtils.minmax(this.currentIndex, 0, Math.ceil(this.pages.length / 2))
+        
+        this.showPrev()
     }
 
     clear(){

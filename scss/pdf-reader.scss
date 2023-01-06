@@ -1,0 +1,85 @@
+:root {
+    --pdf-reader-font-family: sans-serif;
+    --pdf-reader-controls-background: #f6f6f6;  
+    --pdf-reader-controls-color: #f6f6f6;
+    --pdf-reader-controls-transition: all 0.5s ease;
+}
+
+.pdf-reader {
+    height: 100vh;
+    @include column;
+    position: relative;
+    font-family: var(--pdf-reader-font-family);
+    .controls-container {
+        @include row(center);
+        gap: 1rem;
+        width: 100%;
+        z-index: 1;
+        padding: 1rem;
+        background: var(--pdf-reader-controls-background);
+        .zoom-container {
+            display: flex;
+        }
+        button {
+            cursor: pointer;
+        }
+    }
+
+    .view-container {
+        width: 100%;
+        flex-grow: 1;
+        overflow: auto;
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        &.draggable {
+            cursor: grab;
+            display: block;
+        }
+    }
+
+    .search-container {
+        .search-results {
+            @include column;
+            position: absolute;
+            top: 3.3rem;
+            left: 0;
+            background: white;
+            z-index: 1;
+            width: 25rem;
+            height: calc(100vh - 3.3rem);
+            overflow-y: auto;
+            box-shadow: 0 2px 2px rgba(0,0,0,0.2);
+            transform: translate(-100%, 0);
+            transition: var(--pdf-reader-controls-transition);
+            &.active {
+                transform: translate(0,0)
+            }
+            .search-result {
+                @include row;
+                gap: 1rem;
+                list-style: none;
+                position: relative;
+                padding: 0.5rem 1rem;
+                cursor: pointer;
+                border-bottom: 1px solid var(--pdf-reader-controls-color);
+                &:hover {
+                    background: var(--pdf-reader-controls-color);
+                }
+                img {
+                    width: 4rem;
+                    height: 6rem;
+                    object-fit: cover;
+                    box-shadow: 0 2px 2px rgba(0,0,0,0.2);
+                }
+                span {
+                    position: absolute;
+                    bottom: 0;
+                    background: white;
+                    padding: 0.2rem;
+                    border-radius: 0 2px 0 0;
+                }
+            }
+        }
+    }
+}

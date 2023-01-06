@@ -1,12 +1,94 @@
 /*!****************************************************************************************************************************************************!*\
   !*** css ./node_modules/css-loader/dist/cjs.js!./node_modules/postcss-loader/dist/cjs.js!./node_modules/sass-loader/dist/cjs.js!./scss/style.scss ***!
   \****************************************************************************************************************************************************/
+:root {
+  --pdf-reader-font-family: sans-serif;
+  --pdf-reader-controls-background: #f6f6f6;
+  --pdf-reader-controls-color: #f6f6f6;
+  --pdf-reader-controls-transition: all 0.5s ease; }
+
+.pdf-reader {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  position: relative;
+  font-family: var(--pdf-reader-font-family); }
+  .pdf-reader .controls-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 1rem;
+    width: 100%;
+    z-index: 1;
+    padding: 1rem;
+    background: var(--pdf-reader-controls-background); }
+    .pdf-reader .controls-container .zoom-container {
+      display: flex; }
+    .pdf-reader .controls-container button {
+      cursor: pointer; }
+  .pdf-reader .view-container {
+    width: 100%;
+    flex-grow: 1;
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    padding: 1rem; }
+    .pdf-reader .view-container.draggable {
+      cursor: grab;
+      display: block; }
+  .pdf-reader .search-container .search-results {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    position: absolute;
+    top: 3.3rem;
+    left: 0;
+    background: white;
+    z-index: 1;
+    width: 25rem;
+    height: calc(100vh - 3.3rem);
+    overflow-y: auto;
+    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
+    transform: translate(-100%, 0);
+    transition: var(--pdf-reader-controls-transition); }
+    .pdf-reader .search-container .search-results.active {
+      transform: translate(0, 0); }
+    .pdf-reader .search-container .search-results .search-result {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-start;
+      align-items: flex-start;
+      gap: 1rem;
+      list-style: none;
+      position: relative;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      border-bottom: 1px solid var(--pdf-reader-controls-color); }
+      .pdf-reader .search-container .search-results .search-result:hover {
+        background: var(--pdf-reader-controls-color); }
+      .pdf-reader .search-container .search-results .search-result img {
+        width: 4rem;
+        height: 6rem;
+        object-fit: cover;
+        box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2); }
+      .pdf-reader .search-container .search-results .search-result span {
+        position: absolute;
+        bottom: 0;
+        background: white;
+        padding: 0.2rem;
+        border-radius: 0 2px 0 0; }
+
 .flip-book {
   margin: 0 auto;
   position: relative;
   perspective: 800px;
   transform-style: preserve-3d;
-  perspective-origin: 50% 50%; }
+  perspective-origin: 50% 50%;
+  transition: all 0.5s ease; }
   .flip-book > * {
     position: absolute;
     width: 50%;
@@ -19,10 +101,11 @@
     align-items: center;
     border: 1px solid #eee;
     backface-visibility: hidden;
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.2);
-    overflow: hidden; }
+    overflow: hidden;
+    box-shadow: 0 0.1rem 1rem rgba(0, 0, 0, 0.1);
+    box-sizing: content-box; }
     .flip-book > *.transition {
-      transition: transform 1s ease; }
+      transition: transform 0.5s ease; }
     .flip-book > *.hidden {
       z-index: -1;
       opacity: 0; }
@@ -36,10 +119,9 @@
       transform: rotate3d(0, 1, 0, -180deg) translate(50%, 0); }
       .flip-book > *:nth-child(2n+1).active {
         transform: rotate3d(0, 1, 0, 0deg) translate(50%, 0); }
-
-.controls-container {
-  display: flex;
-  gap: 1rem; }
-  .controls-container .zoom-container {
-    display: flex; }
+    .flip-book > * canvas {
+      position: absolute; }
+      .flip-book > * canvas.zooming {
+        width: 100% !important;
+        height: 100% !important; }
 
