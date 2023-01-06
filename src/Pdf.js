@@ -50,6 +50,7 @@ export default class Pdf {
     }
 
     createPageCanvas(page){
+        page.cleanup()
         page.canvas = HtmlUtils.create("canvas")
         page.ctx = page.canvas.getContext("2d")
         page.viewport = page.getViewport({ scale: this.opts.scale })
@@ -61,7 +62,7 @@ export default class Pdf {
             canvasContext: page.ctx,
             viewport: page.viewport
         }
-        page.render(page.renderContext)
+        page.renderTask = page.render(page.renderContext).promise
         return page.canvas
     }
 

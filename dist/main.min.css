@@ -119,9 +119,9 @@
       transform: rotate3d(0, 1, 0, -180deg) translate(50%, 0); }
       .flip-book > *:nth-child(2n+1).active {
         transform: rotate3d(0, 1, 0, 0deg) translate(50%, 0); }
+    .flip-book > *.zooming canvas {
+      width: 100% !important;
+      height: 100% !important; }
     .flip-book > * canvas {
       position: absolute; }
-      .flip-book > * canvas.zooming {
-        width: 100% !important;
-        height: 100% !important; }
 

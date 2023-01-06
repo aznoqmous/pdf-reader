@@ -46,13 +46,14 @@
                 transform: rotate3d(0, 1, 0, 0deg) translate(50%, 0);    
             }
         }
-
-        canvas {
-            position: absolute;
-            &.zooming {
+        &.zooming {
+            canvas {
                 width: 100% !important;
                 height: 100% !important;
             }
+        }
+        canvas {
+            position: absolute;
         }
     }
 }

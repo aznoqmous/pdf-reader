@@ -10,6 +10,7 @@ export default class PdfReader {
         this.opts = Object.assign({
             prevLang: "Previous page",
             nextLang: "Next page",
+            downloadLang: "Download",
             searchLang: "Search",
             searchEmptyLang: "Search inside the document",
             searchNotFoundLang: "No element found matching your request",
@@ -40,9 +41,12 @@ export default class PdfReader {
 
         /* Search */
         this.searchContainer = HtmlUtils.create('div', {className: "search-container"}, this.controlsContainer)
-        this.searchInput = HtmlUtils.create('input', {className: "search-input"}, this.searchContainer)
+        this.searchInput = HtmlUtils.create('input', {className: "search-input", placeholder: this.opts.searchLang}, this.searchContainer)
         this.searchResults = HtmlUtils.create('div', {className: "search-results"}, this.searchContainer)
         this.clearSearchResult()
+
+        /* Download */
+        this.downloadButton = HtmlUtils.create('a', {className: "download", href: this.file, download: this.file, innerHTML: this.opts.downloadLang }, this.controlsContainer)
 
         /* View */
         this.viewContainer = HtmlUtils.create('div', {className: "view-container" }, this.container)
@@ -52,17 +56,11 @@ export default class PdfReader {
     bind(){
         this.prevButton.addEventListener('click', ()=>{
             this.flipBook.prev()
-            this.flipBook.getActivePages().filter(page => page).map(pageContainer => {
-                pageContainer.appendChild(this.reader.createPageCanvas(pageContainer.page))
-                setTimeout(()=> pageContainer.children[0].remove(), 1000)
-            })
+            this.reloadActivePages()
         })
         this.nextButton.addEventListener('click', ()=>{
             this.flipBook.next()
-            this.flipBook.getActivePages().filter(page => page).map(pageContainer => {
-                pageContainer.appendChild(this.reader.createPageCanvas(pageContainer.page))
-                setTimeout(()=> pageContainer.children[0].remove(), 1000)
-            })
+            this.reloadActivePages()
         })
 
         this.minusZoom.addEventListener('click', ()=>{
@@ -118,10 +116,7 @@ export default class PdfReader {
 
             result.addEventListener('click', ()=>{
                 this.flipBook.goToPage(Math.floor(page.pageNumber/2))
-                this.flipBook.getActivePages().filter(page => page).map(pageContainer => {
-                    pageContainer.appendChild(this.reader.createPageCanvas(pageContainer.page))
-                    setTimeout(()=> pageContainer.children[0].remove(), 1000)
-                })
+                this.reloadActivePages()
             })
         })
         if(!results.length) this.notFoundSearchResult()
@@ -153,21 +148,40 @@ export default class PdfReader {
         this.startDragPosition = null
     }
 
+    async reloadActivePages(){
+        let timeQueried = Date.now()
+        this.lastReloadQuery = timeQueried
+
+        await Promise.allSettled(
+            this.flipBook.getActivePages()
+            .filter(page => page)
+            .map(async pageContainer => {
+                let canvas = this.reader.createPageCanvas(pageContainer.page)
+                await pageContainer.page.renderTask
+                if(this.lastReloadQuery != timeQueried) return;
+                pageContainer.appendChild(canvas)
+                if(pageContainer.children.length > 1) pageContainer.children[0].remove()
+                ;[...pageContainer.children].map((canvas, i)=> { if(i) canvas.remove() })
+                pageContainer.classList.remove('zooming')
+            })
+        )
+    }
+
     async zoom(value){
         this.reader.opts.scale += value
         if(this.reader.opts.scale <= 0) this.reader.opts.scale = 0.1
         this.zoomValue.innerHTML = Math.floor(this.reader.opts.scale * 100) + "%"
+
         this.flipBook.getActivePages().filter(page => page).map(pageContainer => {
-            pageContainer.children[pageContainer.children.length-1].classList.add('zooming')
+            pageContainer.classList.add('zooming')
         })
+
         await this.flipBook.zoom(this.reader.opts.scale)
-        this.flipBook.getActivePages().filter(page => page).map(pageContainer => {
-            pageContainer.appendChild(this.reader.createPageCanvas(pageContainer.page))
-            setTimeout(()=> {
-                this.viewContainer.classList.toggle('draggable', this.viewContainer.scrollHeight > this.viewContainer.clientHeight)
-                pageContainer.children[0].remove()
-            }, 600)
-        })
+
+        this.viewContainer.classList.toggle('draggable', this.viewContainer.scrollHeight > this.viewContainer.clientHeight)
+        
+        await this.reloadActivePages()
+
     }
 
     async load(){
