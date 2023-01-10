@@ -9,7 +9,7 @@
   },
   "author": "",
   "license": "ISC",
-  "dependencies": {
+  "devDependencies": {
     "css-loader": "^6.7.2",
     "mini-css-extract-plugin": "^2.7.1",
     "node-sass": "^8.0.0",
