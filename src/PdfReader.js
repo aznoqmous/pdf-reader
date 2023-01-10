@@ -1,10 +1,19 @@
 import FlipBook from "./FlipBook"
 import HtmlUtils from "./HtmlUtils"
 import Pdf from "./Pdf"
+import { 
+    PdfReaderLoadedEvent,
+    PdfReaderLoadProgress,
+    PdfReaderIndexationProgress,
+    PdfReaderIndexationCompleted,
+    PdfReaderZoomEvent,
+    PdfReaderLoadPageEvent
+} from "./PdfReaderEvents"
 import Vector2 from "./Vector2"
 
-export default class PdfReader {
+export default class PdfReader extends EventTarget {
     constructor(file, container, opts={}){
+        super()
         this.file = file
         this.container = container
         this.opts = Object.assign({
@@ -163,6 +172,7 @@ export default class PdfReader {
                 if(pageContainer.children.length > 1) pageContainer.children[0].remove()
                 ;[...pageContainer.children].map((canvas, i)=> { if(i) canvas.remove() })
                 pageContainer.classList.remove('zooming')
+                this.dispatchEvent(new PdfReaderLoadPageEvent(this, pageContainer, pageContainer.page))
             })
         )
     }
@@ -182,10 +192,12 @@ export default class PdfReader {
         
         await this.reloadActivePages()
 
+        this.dispatchEvent(new PdfReaderZoomEvent(this, this.reader.opts.scale))
     }
 
     async load(){
         this.pages = []
+        this.indexed = 0
 
         await this.reader.loadDocument()
         this.canvas = await this.reader.getPageCanvas(1)
@@ -199,20 +211,33 @@ export default class PdfReader {
                 let page = await this.reader.loadPage(i+1)
                 this.pages.push(page)
                 let pageContainer = HtmlUtils.create('div', {className: "page-container" })
-                pageContainer.appendChild(this.reader.createPageCanvas(page))
                 this.flipBook.addPage(pageContainer)
                 pageContainer.page = page
-
-                page.getTextContent()
-                .then(content => {
-                    page.textContent = content.items.map(item => item.str).join(' ')
-                })
+                page.pageContainer = pageContainer
+                this.dispatchEvent(new PdfReaderLoadProgress(this, this.pages.length, this.reader.numPages))
             })
         )
-
         this.bind()
+        
+        this.dispatchEvent(new PdfReaderLoadedEvent(this))
+
+        await this.updateSearchIndex()
+
+        await this.reloadActivePages()
 
         this.container.classList.add('active')
+    }
+
+    async updateSearchIndex(){
+        await Promise.allSettled(
+            this.pages.map(async page => {
+                let content = await page.getTextContent()
+                this.indexed++
+                page.textContent = content.items.map(item => item.str).join(' ')
+                this.dispatchEvent(new PdfReaderIndexationProgress(this, this.indexed, this.reader.numPages))
+            })
+        )
+        this.dispatchEvent(new PdfReaderIndexationCompleted(this))
     }
 
 }
