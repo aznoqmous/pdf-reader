@@ -27,7 +27,6 @@ export default class Pdf {
     async getDocument(){
         return new Promise(res => {
             if(this.pdf) return res(this.pdf)
-            console.log(pdfjsLib)
             pdfjsLib.getDocument(this.filePath).promise.then(pdf => {
                 this.pdf = pdf
                 res(this.pdf)
