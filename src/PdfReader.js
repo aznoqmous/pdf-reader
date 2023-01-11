@@ -176,8 +176,9 @@ export default class PdfReader extends EventTarget {
                 await pageContainer.page.renderTask
                 if(this.lastReloadQuery != timeQueried) return;
                 pageContainer.appendChild(canvas)
-                if(pageContainer.children.length > 1) pageContainer.children[0].remove()
-                ;[...pageContainer.children].map((canvas, i)=> { if(i) canvas.remove() })
+                let canvases = [...pageContainer.querySelectorAll('canvas')]
+                if(canvases.length > 1) canvases[0].remove()
+                canvases.map((canvas, i)=> { if(i > 1) canvas.remove() })
                 pageContainer.classList.remove('zooming')
                 this.dispatchEvent(new PdfReaderLoadPageEvent(this, pageContainer, pageContainer.page))
             })

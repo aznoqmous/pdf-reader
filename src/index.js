@@ -18,10 +18,35 @@ let pdfReader = new PdfReader(
 pdfReader.addEventListener(PdfReaderEvents.loaded, (e)=>{
     console.log(e)
 })
+
 pdfReader.addEventListener(PdfReaderEvents.loadProgress, (e)=> console.log("Load : " + e.percent))
 pdfReader.addEventListener(PdfReaderEvents.indexationProgress, (e)=> console.log("Indexation : " + e.percent))
 pdfReader.addEventListener(PdfReaderEvents.loadPage, (e)=>{
     console.log("Rendered page : " + e.page.pageNumber)
+})
+
+pdfReader.addEventListener(PdfReaderEvents.loadPage, async (e)=>{
+    await sleep(1000)
+
+    let page = e.page
+    if(page.markers) return;
+
+    let content = await page.getTextContent()
+    let textItems = content.items
+    let markers = []
+    textItems = textItems.filter(item => item.str.match(/[A-Z][0-9]{4,5}/))
+    textItems.map(textItem => {
+        let marker = document.createElement('i')
+        let rect = page.pageContainer.getBoundingClientRect()
+        marker.style.position = "absolute"
+        marker.style.left = (textItem.transform[4] * pdfReader.reader.opts.scale / rect.width)  * 100 + "%"
+        marker.style.top = (1 - textItem.transform[5] * pdfReader.reader.opts.scale / rect.height) * 100 + "%";
+        marker.style.fontSize = 0.5 * pdfReader.reader.opts.scale + "rem"
+        marker.innerHTML = textItem.str.replace(/[^A0-9]*/, "")
+        page.pageContainer.appendChild(marker)
+        markers.push(marker)
+    })
+    page.markers = markers
 })
 
 pdfReader.load()
