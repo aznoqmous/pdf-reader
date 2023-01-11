@@ -1,8 +1,6 @@
-import { build } from "../dist/pdf.min"
 import HtmlUtils from "./HtmlUtils"
-import MathUtils from "./MathUtils"
 
-const pdfjsLib = window['pdfjs-dist/build/pdf']
+import * as pdfjsLib from "../dist/pdf.min.js"
 
 export default class Pdf {
     constructor(filePath, opts={}){
@@ -29,6 +27,7 @@ export default class Pdf {
     async getDocument(){
         return new Promise(res => {
             if(this.pdf) return res(this.pdf)
+            console.log(pdfjsLib)
             pdfjsLib.getDocument(this.filePath).promise.then(pdf => {
                 this.pdf = pdf
                 res(this.pdf)
