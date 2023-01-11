@@ -11,7 +11,7 @@ let pdfReader = new PdfReader(
         searchLang: "Recherche",
         searchEmptyLang: "...",
         searchNotFoundLang: "Aucun élément ne correspond à votre recherche",
-        searchMaxResults: 10,
+        searchMaxResults: 0,
         searchResultsCharacters: 50
     }
 )

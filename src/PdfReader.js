@@ -23,7 +23,8 @@ export default class PdfReader extends EventTarget {
             searchLang: "Search",
             searchEmptyLang: "Search inside the document",
             searchNotFoundLang: "No element found matching your request",
-            searchMaxResults: 10,
+            searchMinCharacters: 3,
+            searchMaxResults: 0,
             searchResultsCharacters: 50
         }, opts)
         this.reader = new Pdf(this.file, {
@@ -98,8 +99,8 @@ export default class PdfReader extends EventTarget {
         })
     }
 
-    search(value){
-        if(!value.length){
+    async search(value){
+        if(!value.length || value.length < this.opts.searchMinCharacters){
             this.clearSearchResult()
             return
         }
@@ -108,18 +109,23 @@ export default class PdfReader extends EventTarget {
         this.pages
             .filter(page => page.textContent)
             .some(page => {
-                if(page.textContent.match(value)) results.push(page)
-                return results.length >= this.opts.searchMaxResults
+                if(page.textContent.match(RegExp(value, "i"))) results.push(page)
+                return this.opts.searchMaxResults && results.length >= this.opts.searchMaxResults
             })
-
-        results
-        .map(page => {
-            if(!page.canvasClone) page.canvasClone = HtmlUtils.create('img', { src: page.canvas.toDataURL() })
+        
+        for(let page of results){
+            if(!page.canvasClone) {
+                if(!page.canvas) {
+                    this.reader.createPageCanvas(page) 
+                    await page.renderTask
+                }
+                page.canvasClone = HtmlUtils.create('img', { src: page.canvas.toDataURL() })
+            }
             let result = HtmlUtils.create('li', {className:"search-result"}, this.searchResults)
             result.appendChild(page.canvasClone)
             HtmlUtils.create('span', { innerHTML: page.pageNumber }, result)
             let matchingText = HtmlUtils.create('p', {}, result)
-            let matches = page.textContent.match(RegExp(`.{0,${this.opts.searchResultsCharacters}}${value}.{0,${this.opts.searchResultsCharacters}}`))
+            let matches = page.textContent.match(RegExp(`.{0,${this.opts.searchResultsCharacters}}${value}.{0,${this.opts.searchResultsCharacters}}`, "i"))
             let resultText =  matches.map(text => `...${text}...`).join('<br>')
             matchingText.innerHTML = resultText.replace(RegExp(`(${value})`, 'gi'), "<strong>$1</strong>")
 
@@ -127,7 +133,8 @@ export default class PdfReader extends EventTarget {
                 this.flipBook.goToPage(Math.floor(page.pageNumber/2))
                 this.reloadActivePages()
             })
-        })
+        }
+        
         if(!results.length) this.notFoundSearchResult()
     }
 
