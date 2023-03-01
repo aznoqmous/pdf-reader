@@ -213,7 +213,7 @@ export default class PdfReader extends EventTarget {
     }
     async zoom(value){
         this.reader.opts.scale += value
-        this.zoom(this.reader.opts.scale)
+        this.setZoom(this.reader.opts.scale)
     }
 
     async load(){
@@ -233,7 +233,6 @@ export default class PdfReader extends EventTarget {
             let viewPortWidth = page.viewport.width
             let targetWidth = this.flipBook.container.getBoundingClientRect().width
             let scale = targetWidth / viewPortWidth
-            console.log(viewPortWidth, targetWidth, scale)
             await this.setZoom(scale)
         }
 
