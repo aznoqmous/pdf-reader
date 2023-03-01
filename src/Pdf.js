@@ -11,7 +11,9 @@ export default class Pdf {
         this.opts = Object.assign({
             container: document.body,
             scale: 1,
-            outputScale: window.devicePixelRatio || 1
+            outputScale: window.devicePixelRatio || 1,
+            pageWidth: 'auto',
+            pageHeight: 'auto'
         },
         opts)
     }

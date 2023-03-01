@@ -194,8 +194,8 @@ export default class PdfReader extends EventTarget {
         )
     }
 
-    async zoom(value){
-        this.reader.opts.scale += value
+    async setZoom(value){
+        this.reader.opts.scale = value
         if(this.reader.opts.scale <= 0) this.reader.opts.scale = 0.1
         this.zoomValue.innerHTML = Math.floor(this.reader.opts.scale * 100) + "%"
 
@@ -211,6 +211,10 @@ export default class PdfReader extends EventTarget {
 
         this.dispatchEvent(new PdfReaderZoomEvent(this, this.reader.opts.scale))
     }
+    async zoom(value){
+        this.reader.opts.scale += value
+        this.zoom(this.reader.opts.scale)
+    }
 
     async load(){
         this.pages = []
@@ -223,6 +227,16 @@ export default class PdfReader extends EventTarget {
             pageHeight: this.canvas.style.height,
             mode: this.opts.mode
         })
+
+        if(this.opts.mode == FlipBookMode.MOBILE){
+            let page = await this.reader.loadPage(1)
+            let viewPortWidth = page.viewport.width
+            let targetWidth = this.flipBook.container.getBoundingClientRect().width
+            let scale = targetWidth / viewPortWidth
+            console.log(viewPortWidth, targetWidth, scale)
+            await this.setZoom(scale)
+        }
+
         this.pageValue.innerHTML = `1/${this.reader.numPages}`
         await Promise.allSettled(
             Array.for(this.reader.numPages, async (i)=>{

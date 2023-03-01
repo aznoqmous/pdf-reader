@@ -45,7 +45,7 @@ pdfReader.addEventListener(PdfReaderEvents.loadPage, async (e)=>{
         marker.style.height = ((annotation.rect[3] - annotation.rect[1]) * pdfReader.reader.opts.scale / rect.height) * 100 + "%";
         marker.style.fontSize = 0.5 * pdfReader.reader.opts.scale + "rem"
         marker.innerHTML = "Je découvre le produit"
-        marker.classList.add(annotation.fieldType)
+        if(annotation.fieldType) marker.classList.add(annotation.fieldType)
         marker.classList.add("annotation")
         page.pageContainer.appendChild(marker)
     })
