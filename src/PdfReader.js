@@ -1,4 +1,4 @@
-import FlipBook from "./FlipBook"
+import FlipBook, { FlipBookMode } from "./FlipBook"
 import HtmlUtils from "./HtmlUtils"
 import Pdf from "./Pdf"
 import { 
@@ -25,8 +25,10 @@ export default class PdfReader extends EventTarget {
             searchNotFoundLang: "No element found matching your request",
             searchMinCharacters: 3,
             searchMaxResults: 0,
-            searchResultsCharacters: 50
+            searchResultsCharacters: 50,
+            mode: FlipBookMode.DESKTOP
         }, opts)
+        this.container.dataset.mode = this.opts.mode
         this.reader = new Pdf(this.file, {
             scale: 1
         })
@@ -66,11 +68,11 @@ export default class PdfReader extends EventTarget {
     bind(){
         this.prevButton.addEventListener('click', ()=>{
             this.flipBook.prev()
-            this.reloadActivePages()
+            //this.reloadActivePages()
         })
         this.nextButton.addEventListener('click', ()=>{
             this.flipBook.next()
-            this.reloadActivePages()
+            //this.reloadActivePages()
         })
 
         this.minusZoom.addEventListener('click', ()=>{
@@ -93,9 +95,14 @@ export default class PdfReader extends EventTarget {
         this.viewContainer.addEventListener('mouseleave', this.handleDragEnd.bind(this))
 
         this.flipBook.addEventListener('showPage', (e)=>{
-            let pageIndex = this.flipBook.currentIndex * 2 || 1
-            if(pageIndex > 1) pageIndex = `${pageIndex} - ${pageIndex + 1}`
+            let pageIndex = this.flipBook.currentIndex + 1
+            if(this.opts.mode == FlipBookMode.DESKTOP){
+                pageIndex = this.flipBook.currentIndex * 2 || 1
+                if(pageIndex > 1) pageIndex = `${pageIndex} - ${pageIndex + 1}`
+            }
+            
             this.pageValue.innerHTML = `${pageIndex}/${this.reader.numPages}`
+            this.reloadActivePages()
         })
     }
 
@@ -130,7 +137,9 @@ export default class PdfReader extends EventTarget {
             matchingText.innerHTML = resultText.replace(RegExp(`(${value})`, 'gi'), "<strong>$1</strong>")
 
             result.addEventListener('click', ()=>{
-                this.flipBook.goToPage(Math.floor(page.pageNumber/2))
+                this.flipBook.goToPage(
+                    this.opts.mode == FlipBookMode.MOBILE ? page.pageNumber - 1 : Math.floor(page.pageNumber/2)
+                )
                 this.reloadActivePages()
             })
         }
@@ -211,7 +220,8 @@ export default class PdfReader extends EventTarget {
         this.canvas = await this.reader.getPageCanvas(1)
         this.flipBook = new FlipBook(this.flipBookContainer, {
             pageWidth: this.canvas.style.width,
-            pageHeight: this.canvas.style.height
+            pageHeight: this.canvas.style.height,
+            mode: this.opts.mode
         })
         this.pageValue.innerHTML = `1/${this.reader.numPages}`
         await Promise.allSettled(
@@ -222,7 +232,10 @@ export default class PdfReader extends EventTarget {
                 this.flipBook.addPage(pageContainer)
                 pageContainer.page = page
                 page.pageContainer = pageContainer
-                this.dispatchEvent(new PdfReaderLoadProgress(this, this.pages.length, this.reader.numPages))
+                let canvas = this.reader.createPageCanvas(pageContainer.page)
+                await pageContainer.page.renderTask
+                pageContainer.appendChild(canvas)
+                this.dispatchEvent(new PdfReaderLoadProgress(this, i, this.reader.numPages))
             })
         )
         this.bind()
@@ -230,6 +243,8 @@ export default class PdfReader extends EventTarget {
         this.dispatchEvent(new PdfReaderLoadedEvent(this))
 
         await this.updateSearchIndex()
+        
+        this.flipBook.goToPage(0)
 
         await this.reloadActivePages()
 

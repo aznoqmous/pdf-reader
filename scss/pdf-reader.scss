@@ -10,6 +10,11 @@
     @include column;
     position: relative;
     font-family: var(--pdf-reader-font-family);
+    &[data-mode="mobile"]{
+        .view-container {
+            overflow: hidden;
+        }
+    }
     .controls-container {
         @include row(center);
         gap: 1rem;

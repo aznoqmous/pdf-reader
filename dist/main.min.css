@@ -15,6 +15,8 @@
   align-items: flex-start;
   position: relative;
   font-family: var(--pdf-reader-font-family); }
+  .pdf-reader[data-mode="mobile"] .view-container {
+    overflow: hidden; }
   .pdf-reader .controls-container {
     display: flex;
     flex-direction: row;
@@ -89,7 +91,13 @@
   transform-style: preserve-3d;
   perspective-origin: 50% 50%;
   transition: all 0.5s ease; }
-  .flip-book > * {
+  .flip-book[data-mode="mobile"] {
+    display: flex;
+    flex-direction: column;
+    overflow-y: scroll; }
+    .flip-book[data-mode="mobile"] > * {
+      position: relative; }
+  .flip-book[data-mode="desktop"] > * {
     position: absolute;
     width: 50%;
     height: 100%;
@@ -104,24 +112,24 @@
     overflow: hidden;
     box-shadow: 0 0.1rem 1rem rgba(0, 0, 0, 0.1);
     box-sizing: content-box; }
-    .flip-book > *.transition {
+    .flip-book[data-mode="desktop"] > *.transition {
       transition: transform 0.5s ease; }
-    .flip-book > *.hidden {
+    .flip-book[data-mode="desktop"] > *.hidden {
       z-index: -1;
       opacity: 0; }
-    .flip-book > *:nth-child(2n) {
+    .flip-book[data-mode="desktop"] > *:nth-child(2n) {
       left: 25%;
       transform: rotate3d(0, 1, 0, 180deg) translate(-50%, 0); }
-      .flip-book > *:nth-child(2n).active {
+      .flip-book[data-mode="desktop"] > *:nth-child(2n).active {
         transform: rotate3d(0, 1, 0, 0deg) translate(-50%, 0); }
-    .flip-book > *:nth-child(2n+1) {
+    .flip-book[data-mode="desktop"] > *:nth-child(2n+1) {
       left: 25%;
       transform: rotate3d(0, 1, 0, -180deg) translate(50%, 0); }
-      .flip-book > *:nth-child(2n+1).active {
+      .flip-book[data-mode="desktop"] > *:nth-child(2n+1).active {
         transform: rotate3d(0, 1, 0, 0deg) translate(50%, 0); }
-    .flip-book > *.zooming canvas {
+    .flip-book[data-mode="desktop"] > *.zooming canvas {
       width: 100% !important;
       height: 100% !important; }
-    .flip-book > * canvas {
+    .flip-book[data-mode="desktop"] > * canvas {
       position: absolute; }
 

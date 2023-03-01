@@ -6,54 +6,67 @@
     perspective-origin: 50% 50%;
     transition: all 0.5s ease;
 
-    > * {
-        position: absolute;
-        width: 50%;
-        height: 100%;
-        left: 0;
-        top: 0;
-        background: white;
+    &[data-mode="mobile"]{
         display: flex;
-        justify-content: center;
-        align-items: center;
-        border: 1px solid #eee;
-        backface-visibility: hidden;
-        overflow: hidden;
-        box-shadow: 0 0.1rem 1rem rgba(0, 0, 0, 0.1);
-        box-sizing: content-box;
-        
-        &.transition {
-            transition: transform 0.5s ease;
-        }
-        
-        &.hidden {
-            z-index: -1;
-            opacity: 0;
-        }
-        
-        &:nth-child(2n){
-            left: 25%;
-            transform: rotate3d(0, 1, 0, 180deg) translate(-50%, 0);
-            &.active {
-                transform: rotate3d(0, 1, 0, 0deg) translate(-50%, 0);    
-            }
-        }
-
-        &:nth-child(2n+1){
-            left: 25%;
-            transform: rotate3d(0, 1, 0, -180deg) translate(50%, 0);
-            &.active {
-                transform: rotate3d(0, 1, 0, 0deg) translate(50%, 0);    
-            }
-        }
-        &.zooming {
-            canvas {
-                width: 100% !important;
-                height: 100% !important;
-            }
-        }
-        canvas {
-            position: absolute;
+        flex-direction: column;
+        overflow-y: scroll;
+        > * {
+            position: relative;
         }
     }
+
+    &[data-mode="desktop"] {
+        > * {
+            position: absolute;
+            width: 50%;
+            height: 100%;
+            left: 0;
+            top: 0;
+            background: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #eee;
+            backface-visibility: hidden;
+            overflow: hidden;
+            box-shadow: 0 0.1rem 1rem rgba(0, 0, 0, 0.1);
+            box-sizing: content-box;
+            
+            &.transition {
+                transition: transform 0.5s ease;
+            }
+            
+            &.hidden {
+                z-index: -1;
+                opacity: 0;
+            }
+            
+            &:nth-child(2n){
+                left: 25%;
+                transform: rotate3d(0, 1, 0, 180deg) translate(-50%, 0);
+                &.active {
+                    transform: rotate3d(0, 1, 0, 0deg) translate(-50%, 0);    
+                }
+            }
+    
+            &:nth-child(2n+1){
+                left: 25%;
+                transform: rotate3d(0, 1, 0, -180deg) translate(50%, 0);
+                &.active {
+                    transform: rotate3d(0, 1, 0, 0deg) translate(50%, 0);    
+                }
+            }
+            &.zooming {
+                canvas {
+                    width: 100% !important;
+                    height: 100% !important;
+                }
+            }
+            canvas {
+                position: absolute;
+            }
+        }
+    }
+
+    
 }

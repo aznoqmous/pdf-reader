@@ -1,5 +1,9 @@
 import MathUtils from "./MathUtils"
 
+export const FlipBookMode = {
+    DESKTOP: "desktop",
+    MOBILE: "mobile"
+}
 export default class FlipBook extends EventTarget {
     
     constructor(container, opts={}){
@@ -9,14 +13,35 @@ export default class FlipBook extends EventTarget {
             pageWidth: "10rem",
             pageHeight: "15rem",
             transition: 500,
-            zoom: 1
+            zoom: 1,
+            mode: FlipBookMode.DESKTOP
         }, opts)
+        this.mode = this.opts.mode
         window.flipBook = this
         this.currentIndex = 0
         this.build()
     }
 
+    set mode(mode){
+        this.container.dataset.mode = mode
+    }
+    get mode(){
+        return this.container.dataset.mode
+    }
+
     build(){
+        this.observer = new IntersectionObserver((entries, observer)=>{
+            if(this.mode != FlipBookMode.MOBILE) return;
+            let activePages = [...entries]
+            .filter(e => e.isIntersecting)
+            .sort((a,b)=> b.intersectionRatio - a.intersectionRatio)
+            if(!activePages.length) return
+
+            this.currentIndex = [...this.container.children].indexOf(activePages[0].target)
+            this.dispatchEvent(new ShowPageEvent(this.pages[this.currentIndex]))
+        }, {
+            root: this.container
+        })
         this.container.classList.add('flip-book')
         this.pages = [...this.container.children]
         this.resize(this.opts.pageWidth, this.opts.pageHeight)
@@ -41,6 +66,14 @@ export default class FlipBook extends EventTarget {
     }
 
     goToPage(index){
+        if(this.mode == FlipBookMode.MOBILE){
+            let rectTop = this.container.getBoundingClientRect().top
+            this.container.scrollTo({
+                top: this.pages[index].getBoundingClientRect().top + this.container.scrollTop - rectTop,
+                behavior: "smooth"
+            })
+        }
+
         if(index == this.currentIndex) return;
         let isNext = index > this.currentIndex
         this.clear()
@@ -155,6 +188,9 @@ export default class FlipBook extends EventTarget {
     }
 
     getPagesAtIndex(index){
+        if(this.mode == FlipBookMode.MOBILE){
+            return [this.pages[index]]
+        }
         if(index == 0) return [null, this.pages[0]]
         let activePages = []
         if(this.pages[index*2-1]) activePages.push(this.pages[index*2-1])
@@ -165,6 +201,7 @@ export default class FlipBook extends EventTarget {
     addPage(page){
         this.container.appendChild(page)
         this.pages = [...this.container.children]
+        this.observer.observe(page)
         this.dispatchEvent(new AddPageEvent(page))
         if(this.pages.length == 1){
             page.classList.add('active')

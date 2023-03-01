@@ -1,8 +1,9 @@
 import PdfReader from "../index.js"
+import { FlipBookMode } from "./FlipBook.js"
 import { PdfReaderEvents } from "./PdfReaderEvents"
 
 let pdfReader = new PdfReader(
-    "tests/test.pdf",
+    "tests/test-1.pdf",
     document.getElementById('book'),
     {
         prevLang: "Page précédente",
@@ -12,7 +13,8 @@ let pdfReader = new PdfReader(
         searchEmptyLang: "...",
         searchNotFoundLang: "Aucun élément ne correspond à votre recherche",
         searchMaxResults: 0,
-        searchResultsCharacters: 50
+        searchResultsCharacters: 50,
+        mode: FlipBookMode.MOBILE
     }
 )
 pdfReader.addEventListener(PdfReaderEvents.loaded, (e)=>{
@@ -31,9 +33,28 @@ pdfReader.addEventListener(PdfReaderEvents.loadPage, async (e)=>{
     let page = e.page
     if(page.markers) return;
 
+    let annotations = await page.getAnnotations()
+    console.log(annotations)
+    annotations.map(annotation => {
+        let marker = document.createElement('i')
+        let rect = page.pageContainer.getBoundingClientRect()
+        marker.style.position = "absolute"
+        marker.style.left = (annotation.rect[0] * pdfReader.reader.opts.scale / rect.width)  * 100 + "%"
+        marker.style.top = (1 - annotation.rect[1] * pdfReader.reader.opts.scale / rect.height) * 100 + "%";
+        marker.style.width = ((annotation.rect[2] - annotation.rect[0]) * pdfReader.reader.opts.scale / rect.width) * 100 + "%";
+        marker.style.height = ((annotation.rect[3] - annotation.rect[1]) * pdfReader.reader.opts.scale / rect.height) * 100 + "%";
+        marker.style.fontSize = 0.5 * pdfReader.reader.opts.scale + "rem"
+        marker.innerHTML = "Je découvre le produit"
+        marker.classList.add(annotation.fieldType)
+        marker.classList.add("annotation")
+        page.pageContainer.appendChild(marker)
+    })
+
+
     let content = await page.getTextContent()
     let textItems = content.items
     let markers = []
+    console.log(textItems)
     textItems = textItems.filter(item => item.str.match(/[A-Z][0-9]{4,5}/))
     textItems.map(textItem => {
         let marker = document.createElement('i')
