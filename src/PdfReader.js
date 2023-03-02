@@ -196,6 +196,7 @@ export default class PdfReader extends EventTarget {
 
     async setZoom(value){
         this.reader.opts.scale = value
+        this.container.style.setProperty("--pdf-reader-zoom", this.reader.opts.scale)
         if(this.reader.opts.scale <= 0) this.reader.opts.scale = 0.1
         this.zoomValue.innerHTML = Math.floor(this.reader.opts.scale * 100) + "%"
 
