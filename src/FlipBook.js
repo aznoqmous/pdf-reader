@@ -54,11 +54,14 @@ export default class FlipBook extends EventTarget {
     async resize(width, height){
         this.width = width
         this.height = height
-        this.container.style.width = `calc(${width} * ${2*this.opts.zoom})`
+
+        this.container.style.width = this.mode == FlipBookMode.DESKTOP ? `calc(${width} * ${2*this.opts.zoom})` : `calc(${width} * ${this.opts.zoom})`
         this.container.style.height = `calc(${height} * ${this.opts.zoom})`
+        
         await sleep(this.opts.transition + 100)
-        this.container.style.width = Math.floor(this.container.getBoundingClientRect().width/2)*2 + "px"
-        this.container.style.height = Math.floor(this.container.getBoundingClientRect().height) + "px"
+
+        //this.container.style.width = this.mode == FlipBookMode.DESKTOP ? Math.floor(this.container.getBoundingClientRect().width/2)*2 + "px" : Math.floor(this.container.getBoundingClientRect().width) + "px"
+        //this.container.style.height = Math.floor(this.container.getBoundingClientRect().height) + "px"
     }
     async zoom(value){
         this.opts.zoom = value

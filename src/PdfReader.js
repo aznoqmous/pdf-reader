@@ -26,7 +26,10 @@ export default class PdfReader extends EventTarget {
             searchMinCharacters: 3,
             searchMaxResults: 0,
             searchResultsCharacters: 50,
-            mode: FlipBookMode.DESKTOP
+            mode: FlipBookMode.DESKTOP,
+            maxZoom: 2,
+            minZoom: 0.5,
+            zoomStep: 0.1
         }, opts)
         this.container.dataset.mode = this.opts.mode
         this.reader = new Pdf(this.file, {
@@ -76,10 +79,10 @@ export default class PdfReader extends EventTarget {
         })
 
         this.minusZoom.addEventListener('click', ()=>{
-            this.zoom(-0.1)
+            this.zoom(-this.opts.zoomStep)
         })
         this.plusZoom.addEventListener('click', ()=>{
-            this.zoom(0.1)
+            this.zoom(this.opts.zoomStep)
         })
 
         this.searchInput.addEventListener('input', ()=>{
@@ -195,26 +198,29 @@ export default class PdfReader extends EventTarget {
     }
 
     async setZoom(value){
-        this.reader.opts.scale = value
+        
+        this.reader.opts.scale = Math.max(Math.min(this.opts.maxZoom, value), this.opts.minZoom)
         this.container.style.setProperty("--pdf-reader-zoom", this.reader.opts.scale)
-        if(this.reader.opts.scale <= 0) this.reader.opts.scale = 0.1
-        this.zoomValue.innerHTML = Math.floor(this.reader.opts.scale * 100) + "%"
-
+        this.zoomValue.innerHTML = Math.floor(this.reader.opts.scale.toFixed(2) * 100) + "%"
+        
         this.flipBook.getActivePages().filter(page => page).map(pageContainer => {
             pageContainer.classList.add('zooming')
         })
+        
+        this.viewContainer.classList.add('draggable')
 
         await this.flipBook.zoom(this.reader.opts.scale)
-
-        this.viewContainer.classList.toggle('draggable', this.viewContainer.scrollHeight > this.viewContainer.clientHeight)
         
-        await this.reloadActivePages()
+        this.viewContainer.classList.toggle('draggable', this.viewContainer.scrollHeight > this.viewContainer.clientHeight)
 
+        await this.reloadActivePages()
+        
         this.dispatchEvent(new PdfReaderZoomEvent(this, this.reader.opts.scale))
     }
+    
     async zoom(value){
         this.reader.opts.scale += value
-        this.setZoom(this.reader.opts.scale)
+        await this.setZoom(this.reader.opts.scale)
     }
 
     async load(){
