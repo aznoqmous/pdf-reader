@@ -200,6 +200,8 @@ export default class PdfReader extends EventTarget {
     async setZoom(value){
         
         this.reader.opts.scale = Math.max(Math.min(this.opts.maxZoom, value), this.opts.minZoom)
+        this.container.toggleAttribute("data-zoom-max", this.reader.opts.scale == this.opts.maxZoom)
+        this.container.toggleAttribute("data-zoom-min", this.reader.opts.scale == this.opts.minZoom)
         this.container.style.setProperty("--pdf-reader-zoom", this.reader.opts.scale)
         this.zoomValue.innerHTML = Math.floor(this.reader.opts.scale.toFixed(2) * 100) + "%"
         
