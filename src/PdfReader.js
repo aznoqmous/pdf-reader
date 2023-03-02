@@ -79,10 +79,10 @@ export default class PdfReader extends EventTarget {
         })
 
         this.minusZoom.addEventListener('click', ()=>{
-            this.zoom(-this.opts.zoomStep)
+            this.zoomOut()
         })
         this.plusZoom.addEventListener('click', ()=>{
-            this.zoom(this.opts.zoomStep)
+            this.zoomIn()
         })
 
         this.searchInput.addEventListener('input', ()=>{
@@ -222,7 +222,15 @@ export default class PdfReader extends EventTarget {
     
     async zoom(value){
         this.reader.opts.scale += value
-        await this.setZoom(this.reader.opts.scale)
+        await this.setZoom(this.reader.opts.scale + value)
+    }
+
+    async zoomIn(){
+        await this.zoom(this.opts.zoomStep)
+    }
+
+    async zoomOut(){
+        await this.zoom(-this.opts.zoomStep)
     }
 
     async load(){
