@@ -9,6 +9,7 @@
     height: 100vh;
     @include column;
     position: relative;
+    font-size: 1rem;
     font-family: var(--pdf-reader-font-family);
     &[data-mode="mobile"]{
         .view-container {
@@ -22,6 +23,7 @@
         z-index: 1;
         padding: 1rem;
         background: var(--pdf-reader-controls-background);
+
         .zoom-container {
             display: flex;
         }

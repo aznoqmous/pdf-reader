@@ -14,7 +14,7 @@ let pdfReader = new PdfReader(
         searchNotFoundLang: "Aucun élément ne correspond à votre recherche",
         searchMaxResults: 0,
         searchResultsCharacters: 50,
-        mode: FlipBookMode.DESKTOP,
+        mode: FlipBookMode.MOBILE,
         //maxZoom: 1.5,
         //minZoom: 1,
         //zoomStep: 0.5

@@ -157,9 +157,10 @@ export default class FlipBook extends EventTarget {
         this.clearNext()
 
         this.currentIndex++
-        this.currentIndex = MathUtils.minmax(this.currentIndex, 0, Math.ceil(this.pages.length / 2))
+        this.currentIndex = MathUtils.minmax(this.currentIndex, 0, Math.ceil( this.pages.length / ( this.mode == FlipBookMode.DESKTOP ? 2 : 1)))
 
-        this.showNext()
+        if(this.mode == FlipBookMode.DESKTOP) this.showNext()
+        else this.goToPage(this.currentIndex)
     }
     prev(){
         if(!this.currentIndex) return;
@@ -168,9 +169,10 @@ export default class FlipBook extends EventTarget {
         this.clearPrev()
 
         this.currentIndex--
-        this.currentIndex = MathUtils.minmax(this.currentIndex, 0, Math.ceil(this.pages.length / 2))
-        
-        this.showPrev()
+        this.currentIndex = MathUtils.minmax(this.currentIndex, 0, Math.ceil( this.pages.length / ( this.mode == FlipBookMode.DESKTOP ? 2 : 1)))
+
+        if(this.mode == FlipBookMode.DESKTOP) this.showPrev()
+        else this.goToPage(this.currentIndex)
     }
 
     clear(){
