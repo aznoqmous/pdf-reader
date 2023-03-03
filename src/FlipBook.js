@@ -36,11 +36,11 @@ export default class FlipBook extends EventTarget {
             .filter(e => e.isIntersecting)
             .sort((a,b)=> b.intersectionRatio - a.intersectionRatio)
             if(!activePages.length) return
-
             this.currentIndex = [...this.container.children].indexOf(activePages[0].target)
             this.dispatchEvent(new ShowPageEvent(this.pages[this.currentIndex]))
         }, {
-            root: this.container
+            root: this.container,
+            threshold: 0.5,
         })
         this.container.classList.add('flip-book')
         this.pages = [...this.container.children]
@@ -69,7 +69,12 @@ export default class FlipBook extends EventTarget {
     }
 
     goToPage(index){
+        
+        if(index == this.currentIndex) return;
+        let isNext = index > this.currentIndex
+        
         if(this.mode == FlipBookMode.MOBILE){
+            if(!this.pages[index]) return
             let rectTop = this.container.getBoundingClientRect().top
             this.container.scrollTo({
                 top: this.pages[index].getBoundingClientRect().top + this.container.scrollTop - rectTop,
@@ -77,18 +82,18 @@ export default class FlipBook extends EventTarget {
             })
         }
 
-        if(index == this.currentIndex) return;
-        let isNext = index > this.currentIndex
         this.clear()
-
+        
         if(isNext) this.clearNext()
         else this.clearPrev()
 
+        
         this.currentIndex = index
         this.currentIndex = MathUtils.minmax(this.currentIndex, 0, Math.ceil(this.pages.length / 2))
-
+        
         if(isNext) this.showNext()
         else this.showPrev()
+
     }
 
     clearNext(){
@@ -110,13 +115,13 @@ export default class FlipBook extends EventTarget {
             if(activePages[0]) {
                 activePages[0].classList.add('active')
                 activePages[0].classList.add('transition')
-                this.dispatchEvent(new ShowPageEvent(activePages[0]))
+                if(this.mode == FlipBookMode.DESKTOP) this.dispatchEvent(new ShowPageEvent(activePages[0]))
             }
             if(activePages[1]) {
                 setTimeout(()=>{
                     activePages[1].classList.add('active')
                     setTimeout(()=> activePages[1].classList.add('transition'), 100)
-                    this.dispatchEvent(new ShowPageEvent(activePages[1]))
+                    if(this.mode == FlipBookMode.DESKTOP) this.dispatchEvent(new ShowPageEvent(activePages[1]))
                 }, 100)
             }
         }
@@ -141,38 +146,26 @@ export default class FlipBook extends EventTarget {
         if(activePages && activePages.length){
             if(activePages[0]) {
                 activePages[0].classList.add('active')
-                this.dispatchEvent(new ShowPageEvent(activePages[0]))
+                if(this.mode == FlipBookMode.DESKTOP) this.dispatchEvent(new ShowPageEvent(activePages[0]))
             }
             if(activePages[1]) {
                 activePages[1].classList.add('transition')
                 activePages[1].classList.add('active')
-                this.dispatchEvent(new ShowPageEvent(activePages[1]))
+                if(this.mode == FlipBookMode.DESKTOP) this.dispatchEvent(new ShowPageEvent(activePages[1]))
             }
         }
     }
 
     next(){
-        this.clear()
-
-        this.clearNext()
-
-        this.currentIndex++
-        this.currentIndex = MathUtils.minmax(this.currentIndex, 0, Math.ceil( this.pages.length / ( this.mode == FlipBookMode.DESKTOP ? 2 : 1)))
-
-        if(this.mode == FlipBookMode.DESKTOP) this.showNext()
-        else this.goToPage(this.currentIndex)
+        let index = this.currentIndex + 1
+        index = MathUtils.minmax(index, 0, Math.ceil( this.pages.length / ( this.mode == FlipBookMode.DESKTOP ? 2 : 1)))
+        this.goToPage(index)
     }
     prev(){
         if(!this.currentIndex) return;
-        this.clear()
-
-        this.clearPrev()
-
-        this.currentIndex--
-        this.currentIndex = MathUtils.minmax(this.currentIndex, 0, Math.ceil( this.pages.length / ( this.mode == FlipBookMode.DESKTOP ? 2 : 1)))
-
-        if(this.mode == FlipBookMode.DESKTOP) this.showPrev()
-        else this.goToPage(this.currentIndex)
+        let index = this.currentIndex - 1
+        index = MathUtils.minmax(index, 0, Math.ceil( this.pages.length / ( this.mode == FlipBookMode.DESKTOP ? 2 : 1)))
+        this.goToPage(index)
     }
 
     clear(){

@@ -98,6 +98,7 @@ export default class PdfReader extends EventTarget {
         this.viewContainer.addEventListener('mouseleave', this.handleDragEnd.bind(this))
 
         this.flipBook.addEventListener('showPage', (e)=>{
+            console.log(this.flipBook.currentIndex)
             let pageIndex = this.flipBook.currentIndex + 1
             if(this.opts.mode == FlipBookMode.DESKTOP){
                 pageIndex = this.flipBook.currentIndex * 2 || 1
