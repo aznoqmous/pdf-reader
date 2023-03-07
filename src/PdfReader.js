@@ -141,9 +141,7 @@ export default class PdfReader extends EventTarget {
             matchingText.innerHTML = resultText.replace(RegExp(`(${value})`, 'gi'), "<strong>$1</strong>")
 
             result.addEventListener('click', ()=>{
-                this.flipBook.goToPage(
-                    this.opts.mode == FlipBookMode.MOBILE ? page.pageNumber - 1 : Math.floor(page.pageNumber/2)
-                )
+                this.goToPage(page.pageNumber)
                 this.reloadActivePages()
             })
         }
@@ -175,6 +173,10 @@ export default class PdfReader extends EventTarget {
     }
     handleDragEnd(){
         this.startDragPosition = null
+    }
+    
+    goToPage(index){
+        this.opts.mode == FlipBookMode.MOBILE ? index - 1 : Math.floor(index/2)
     }
 
     async reloadActivePages(){
