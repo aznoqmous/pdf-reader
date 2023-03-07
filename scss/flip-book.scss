@@ -7,11 +7,13 @@
     transition: all 0.5s ease;
 
     &[data-mode="mobile"]{
-        display: flex;
-        flex-direction: column;
+        //display: flex;
+        //flex-direction: column;
         overflow-y: scroll;
         > * {
             position: relative;
+            height: var(--flipbook-height);
+            width: var(--flipbook-width);
         }
     }
 

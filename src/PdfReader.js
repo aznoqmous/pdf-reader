@@ -98,7 +98,6 @@ export default class PdfReader extends EventTarget {
         this.viewContainer.addEventListener('mouseleave', this.handleDragEnd.bind(this))
 
         this.flipBook.addEventListener('showPage', (e)=>{
-            console.log(this.flipBook.currentIndex)
             let pageIndex = this.flipBook.currentIndex + 1
             if(this.opts.mode == FlipBookMode.DESKTOP){
                 pageIndex = this.flipBook.currentIndex * 2 || 1
@@ -255,8 +254,8 @@ export default class PdfReader extends EventTarget {
             let scale = targetWidth / viewPortWidth
             await this.setZoom(scale)
         }
-
         this.pageValue.innerHTML = `1/${this.reader.numPages}`
+        let loaded = 0
         await Promise.allSettled(
             Array.for(this.reader.numPages, async (i)=>{
                 let page = await this.reader.loadPage(i+1)
@@ -265,10 +264,14 @@ export default class PdfReader extends EventTarget {
                 this.flipBook.addPage(pageContainer)
                 pageContainer.page = page
                 page.pageContainer = pageContainer
+                
                 let canvas = this.reader.createPageCanvas(pageContainer.page)
                 await pageContainer.page.renderTask
                 pageContainer.appendChild(canvas)
-                this.dispatchEvent(new PdfReaderLoadProgress(this, i, this.reader.numPages))
+                
+                loaded++
+                
+                this.dispatchEvent(new PdfReaderLoadProgress(this, loaded, this.reader.numPages))
             })
         )
         this.bind()

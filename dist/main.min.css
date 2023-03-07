@@ -93,11 +93,11 @@
   perspective-origin: 50% 50%;
   transition: all 0.5s ease; }
   .flip-book[data-mode="mobile"] {
-    display: flex;
-    flex-direction: column;
     overflow-y: scroll; }
     .flip-book[data-mode="mobile"] > * {
-      position: relative; }
+      position: relative;
+      height: var(--flipbook-height);
+      width: var(--flipbook-width); }
   .flip-book[data-mode="desktop"] > * {
     position: absolute;
     width: 50%;

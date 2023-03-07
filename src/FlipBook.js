@@ -57,7 +57,8 @@ export default class FlipBook extends EventTarget {
 
         this.container.style.width = this.mode == FlipBookMode.DESKTOP ? `calc(${width} * ${2*this.opts.zoom})` : `calc(${width} * ${this.opts.zoom})`
         this.container.style.height = `calc(${height} * ${this.opts.zoom})`
-        
+        this.container.style.setProperty('--flipbook-width', this.container.style.width)
+        this.container.style.setProperty('--flipbook-height', this.container.style.height)
         await sleep(this.opts.transition + 100)
 
         //this.container.style.width = this.mode == FlipBookMode.DESKTOP ? Math.floor(this.container.getBoundingClientRect().width/2)*2 + "px" : Math.floor(this.container.getBoundingClientRect().width) + "px"
