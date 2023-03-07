@@ -176,7 +176,7 @@ export default class PdfReader extends EventTarget {
     }
     
     goToPage(index){
-        this.opts.mode == FlipBookMode.MOBILE ? index - 1 : Math.floor(index/2)
+        this.flipBook.goToPage(this.opts.mode == FlipBookMode.MOBILE ? index - 1 : Math.floor(index/2))
     }
 
     async reloadActivePages(){
