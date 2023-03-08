@@ -310,7 +310,7 @@ export default class PdfReader extends EventTarget {
             loaded++
             this.dispatchEvent(new PdfReaderPreLoadProgress(this, loaded, this.reader.numPages))
             if(loaded < this.reader.numPages) setTimeout(loop)
-            else this.dispatchEvent(new PdfReaderPreLoadedEvent(this)
+            else this.dispatchEvent(new PdfReaderPreLoadedEvent(this))
         }
         loop()
     }
