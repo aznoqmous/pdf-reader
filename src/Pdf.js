@@ -9,13 +9,13 @@ export default class Pdf {
         this.pdf = null
         this.pages = {}
         this.opts = Object.assign({
-            container: document.body,
-            scale: 1,
-            outputScale: window.devicePixelRatio || 1,
-            pageWidth: 'auto',
-            pageHeight: 'auto'
-        },
-        opts)
+                container: document.body,
+                scale: 1,
+                outputScale: window.devicePixelRatio || 1,
+                pageWidth: 'auto',
+                pageHeight: 'auto'
+            },
+            opts)
     }
 
     get numPages(){
@@ -54,14 +54,19 @@ export default class Pdf {
         page.canvas = HtmlUtils.create("canvas")
         page.ctx = page.canvas.getContext("2d", {willReadFrequently: true})
         page.viewport = page.getViewport({ scale: this.opts.scale })
-        page.canvas.width = Math.floor(page.viewport.width)
-        page.canvas.height = Math.floor(page.viewport.height)
+        page.canvas.width = Math.floor(page.viewport.width * this.opts.outputScale)
+        page.canvas.height = Math.floor(page.viewport.height * this.opts.outputScale)
         page.canvas.style.width = Math.floor(page.viewport.width) + "px"
         page.canvas.style.height = Math.floor(page.viewport.height) + "px"
+        var transform = this.opts.outputScale !== 1
+            ? [this.opts.outputScale, 0, 0, this.opts.outputScale, 0, 0]
+            : null;
         page.renderContext = {
             canvasContext: page.ctx,
+            transform,
             viewport: page.viewport
         }
+        console.log(transform, this.opts.outputScale)
         page.renderTask = page.render(page.renderContext).promise
         return page.canvas
     }
