@@ -3,6 +3,8 @@ export const PdfReaderEvents = {
 
     loadProgress: "onPdfReaderLoadProgress",
     loaded: "onPdfReaderLoaded",
+    preloadProgress: "onPdfReaderPreLoadProgress",
+    preloaded: "onPdfReaderPreLoaded",
 
     indexationProgress: "onPdfReaderIndexationProgress",
     indexationCompleted: "onPdfReaderIndexationCompleted",
@@ -23,6 +25,25 @@ export class PdfReaderLoadedEvent extends Event {
 export class PdfReaderLoadProgress extends Event {
     constructor(pdfReader, current, total){
         super(PdfReaderEvents.loadProgress)
+        this.pdfReader = pdfReader
+        this.current = current
+        this.total = total
+        this.progress = current/total
+        this.percent = (current/total * 100).toFixed(2) + "%"
+    }
+}
+
+
+export class PdfReaderPreLoadedEvent extends Event {
+    constructor(pdfReader){
+        super(PdfReaderEvents.preloaded)
+        this.pdfReader = pdfReader
+    }
+}
+
+export class PdfReaderPreLoadProgress extends Event {
+    constructor(pdfReader, current, total){
+        super(PdfReaderEvents.preloadProgress)
         this.pdfReader = pdfReader
         this.current = current
         this.total = total

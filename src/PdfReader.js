@@ -7,7 +7,9 @@ import {
     PdfReaderIndexationProgress,
     PdfReaderIndexationCompleted,
     PdfReaderZoomEvent,
-    PdfReaderLoadPageEvent
+    PdfReaderLoadPageEvent,
+    PdfReaderPreLoadedEvent,
+    PdfReaderPreLoadProgress
 } from "./PdfReaderEvents"
 import Vector2 from "./Vector2"
 
@@ -306,8 +308,9 @@ export default class PdfReader extends EventTarget {
             await page.renderTask
             page.pageContainer.appendChild(canvas)
             loaded++
-            console.log(loaded + "/" + this.reader.numPages)
+            this.dispatchEvent(new PdfReaderPreLoadProgress(this, loaded, this.reader.numPages))
             if(loaded < this.reader.numPages) setTimeout(loop)
+            else this.dispatchEvent(new PdfReaderPreLoadedEvent(this)
         }
         loop()
     }
