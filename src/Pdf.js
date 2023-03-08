@@ -52,7 +52,7 @@ export default class Pdf {
     createPageCanvas(page){
         page.cleanup()
         page.canvas = HtmlUtils.create("canvas")
-        page.ctx = page.canvas.getContext("2d")
+        page.ctx = page.canvas.getContext("2d", {willReadFrequently: true})
         page.viewport = page.getViewport({ scale: this.opts.scale })
         page.canvas.width = Math.floor(page.viewport.width)
         page.canvas.height = Math.floor(page.viewport.height)

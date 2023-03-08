@@ -265,15 +265,12 @@ export default class PdfReader extends EventTarget {
                 pageContainer.page = page
                 page.pageContainer = pageContainer
                 
-                let canvas = this.reader.createPageCanvas(pageContainer.page)
-                await pageContainer.page.renderTask
-                pageContainer.appendChild(canvas)
-                
                 loaded++
                 
                 this.dispatchEvent(new PdfReaderLoadProgress(this, loaded, this.reader.numPages))
             })
         )
+
         this.bind()
         
         this.dispatchEvent(new PdfReaderLoadedEvent(this))
@@ -285,6 +282,8 @@ export default class PdfReader extends EventTarget {
         await this.reloadActivePages()
 
         this.container.classList.add('active')
+
+        this.preload()
     }
 
     async updateSearchIndex(){
@@ -299,4 +298,17 @@ export default class PdfReader extends EventTarget {
         this.dispatchEvent(new PdfReaderIndexationCompleted(this))
     }
 
+    preload(){
+        let loaded = 1
+        let loop = async ()=>{
+            let page = await this.reader.loadPage(loaded)
+            let canvas = this.reader.createPageCanvas(page)
+            await page.renderTask
+            page.pageContainer.appendChild(canvas)
+            loaded++
+            console.log(loaded + "/" + this.reader.numPages)
+            if(loaded < this.reader.numPages) setTimeout(loop)
+        }
+        loop()
+    }
 }
