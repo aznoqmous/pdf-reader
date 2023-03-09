@@ -50,6 +50,7 @@ export default class Pdf {
     }
 
     createPageCanvas(page){
+        if(page.scale == this.opts.scale) return page.canvas
         page.cleanup()
         page.canvas = HtmlUtils.create("canvas")
         page.ctx = page.canvas.getContext("2d", {willReadFrequently: true})
@@ -59,14 +60,14 @@ export default class Pdf {
         page.canvas.style.width = Math.floor(page.viewport.width) + "px"
         page.canvas.style.height = Math.floor(page.viewport.height) + "px"
         var transform = this.opts.outputScale !== 1
-            ? [this.opts.outputScale, 0, 0, this.opts.outputScale, 0, 0]
-            : null;
+        ? [this.opts.outputScale, 0, 0, this.opts.outputScale, 0, 0]
+        : null;
         page.renderContext = {
             canvasContext: page.ctx,
             transform,
             viewport: page.viewport
         }
-        console.log(transform, this.opts.outputScale)
+        page.scale = this.opts.scale
         page.renderTask = page.render(page.renderContext).promise
         return page.canvas
     }

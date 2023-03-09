@@ -25,6 +25,8 @@ pdfReader.addEventListener(PdfReaderEvents.loaded, (e)=>{
 })
 
 pdfReader.addEventListener(PdfReaderEvents.loadProgress, (e)=> console.log("Load : " + e.percent))
+pdfReader.addEventListener(PdfReaderEvents.preloadProgress, (e)=> console.log("Preload : " + e.percent))
+
 pdfReader.addEventListener(PdfReaderEvents.indexationProgress, (e)=> console.log("Indexation : " + e.percent))
 pdfReader.addEventListener(PdfReaderEvents.loadPage, (e)=>{
     console.log("Rendered page : " + e.page.pageNumber)
@@ -37,7 +39,7 @@ pdfReader.addEventListener(PdfReaderEvents.loadPage, async (e)=>{
     if(page.markers) return;
 
     let annotations = await page.getAnnotations()
-    console.log(annotations)
+    //console.log(annotations)
     annotations.map(annotation => {
         let marker = document.createElement('i')
         let rect = page.pageContainer.getBoundingClientRect()
@@ -57,7 +59,7 @@ pdfReader.addEventListener(PdfReaderEvents.loadPage, async (e)=>{
     let content = await page.getTextContent()
     let textItems = content.items
     let markers = []
-    console.log(textItems)
+    //console.log(textItems)
     textItems = textItems.filter(item => item.str.match(/[A-Z][0-9]{4,5}/))
     textItems.map(textItem => {
         let marker = document.createElement('i')
@@ -73,4 +75,4 @@ pdfReader.addEventListener(PdfReaderEvents.loadPage, async (e)=>{
     page.markers = markers
 })
 
-pdfReader.load()
+pdfReader.load().then(()=> pdfReader.goToPage(60))

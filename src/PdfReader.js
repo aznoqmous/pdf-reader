@@ -100,11 +100,9 @@ export default class PdfReader extends EventTarget {
         this.viewContainer.addEventListener('mouseleave', this.handleDragEnd.bind(this))
 
         this.flipBook.addEventListener('showPage', (e)=>{
-            let pageIndex = this.flipBook.currentIndex + 1
-            if(this.opts.mode == FlipBookMode.DESKTOP){
-                pageIndex = this.flipBook.currentIndex * 2 || 1
-                if(pageIndex > 1) pageIndex = `${pageIndex} - ${pageIndex + 1}`
-            }
+            
+            let pageIndex = this.currentIndex
+            if(pageIndex > 1 && pageIndex + 1 <= this.reader.numPages) pageIndex = `${pageIndex} - ${pageIndex + 1}`
             
             this.pageValue.innerHTML = `${pageIndex}/${this.reader.numPages}`
             this.reloadActivePages()
@@ -301,17 +299,30 @@ export default class PdfReader extends EventTarget {
     }
 
     preload(){
+        let pageIndices = Array(this.reader.numPages).fill().map((x,i)=> i)
         let loaded = 1
         let loop = async ()=>{
-            let page = await this.reader.loadPage(loaded)
+            let currentIndex = this.currentIndex
+            let index = pageIndices.sort((a,b) => Math.abs(a-currentIndex)-Math.abs(b-currentIndex))[0]
+            let page = await this.reader.loadPage(index+1)
             let canvas = this.reader.createPageCanvas(page)
             await page.renderTask
             page.pageContainer.appendChild(canvas)
             loaded++
-            this.dispatchEvent(new PdfReaderPreLoadProgress(this, loaded, this.reader.numPages))
-            if(loaded < this.reader.numPages) setTimeout(loop)
+            this.dispatchEvent(new PdfReaderPreLoadProgress(this, loaded-1, this.reader.numPages))
+            pageIndices.splice(pageIndices.indexOf(index), 1)
+            if(pageIndices.length) setTimeout(loop)
             else this.dispatchEvent(new PdfReaderPreLoadedEvent(this))
         }
         loop()
     }
+
+    get currentIndex(){
+        let pageIndex = this.flipBook.currentIndex + 1
+        if(this.opts.mode == FlipBookMode.DESKTOP){
+            pageIndex = this.flipBook.currentIndex * 2 || 1
+        }
+        return pageIndex
+    }
+
 }
