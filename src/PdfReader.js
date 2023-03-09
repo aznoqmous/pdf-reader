@@ -299,11 +299,13 @@ export default class PdfReader extends EventTarget {
     }
 
     preload(){
+        let distance = 5
         let pageIndices = Array(this.reader.numPages).fill().map((x,i)=> i)
         let loaded = 1
         let loop = async ()=>{
             let currentIndex = this.currentIndex
             let index = pageIndices.sort((a,b) => Math.abs(a-currentIndex)-Math.abs(b-currentIndex))[0]
+            if(Math.abs(currentIndex-index) > distance) return setTimeout(loop, 100)
             let page = await this.reader.loadPage(index+1)
             let canvas = this.reader.createPageCanvas(page)
             await page.renderTask
