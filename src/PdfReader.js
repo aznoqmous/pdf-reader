@@ -1,7 +1,7 @@
 import FlipBook, { FlipBookMode } from "./FlipBook"
 import HtmlUtils from "./HtmlUtils"
 import Pdf from "./Pdf"
-import { 
+import {
     PdfReaderLoadedEvent,
     PdfReaderLoadProgress,
     PdfReaderIndexationProgress,
@@ -45,7 +45,7 @@ export default class PdfReader extends EventTarget {
 
         /* Controls */
         this.controlsContainer = HtmlUtils.create('div', {className: "controls-container" }, this.container)
-        
+
         this.pageContainer = HtmlUtils.create('div', {className: "page-container"}, this.controlsContainer)
         this.prevButton = HtmlUtils.create('button', {className: "prev-control", innerHTML: this.opts.prevLang}, this.pageContainer)
         this.pageValue =  HtmlUtils.create('span', {className: "page-value", innerHTML: "/"}, this.pageContainer)
@@ -59,7 +59,8 @@ export default class PdfReader extends EventTarget {
         /* Search */
         this.searchContainer = HtmlUtils.create('div', {className: "search-container"}, this.controlsContainer)
         this.searchInput = HtmlUtils.create('input', {className: "search-input", placeholder: this.opts.searchLang}, this.searchContainer)
-        this.searchResults = HtmlUtils.create('div', {className: "search-results"}, this.searchContainer)
+        this.searchResultsContainer = HtmlUtils.create('div', {className: "search-results-container"}, this.searchContainer)
+        this.searchResults = HtmlUtils.create('div', {className: "search-results"}, this.searchResultsContainer)
         this.clearSearchResult()
 
         /* Download */
@@ -69,15 +70,13 @@ export default class PdfReader extends EventTarget {
         this.viewContainer = HtmlUtils.create('div', {className: "view-container" }, this.container)
         this.flipBookContainer = HtmlUtils.create('div', {className: "flipbook-container" }, this.viewContainer)
     }
-    
+
     bind(){
         this.prevButton.addEventListener('click', ()=>{
             this.flipBook.prev()
-            //this.reloadActivePages()
         })
         this.nextButton.addEventListener('click', ()=>{
             this.flipBook.next()
-            //this.reloadActivePages()
         })
 
         this.minusZoom.addEventListener('click', ()=>{
@@ -91,7 +90,7 @@ export default class PdfReader extends EventTarget {
             this.search(this.searchInput.value)
         })
         this.searchInput.addEventListener('focus', ()=>{
-            this.searchResults.classList.add('active')
+            this.searchResultsContainer.classList.add('active')
         })
 
         this.viewContainer.addEventListener('mousedown', this.handleDragStart.bind(this))
@@ -100,10 +99,10 @@ export default class PdfReader extends EventTarget {
         this.viewContainer.addEventListener('mouseleave', this.handleDragEnd.bind(this))
 
         this.flipBook.addEventListener('showPage', (e)=>{
-            
+
             let pageIndex = this.currentIndex
             if(pageIndex > 1 && pageIndex + 1 <= this.reader.numPages) pageIndex = `${pageIndex} - ${pageIndex + 1}`
-            
+
             this.pageValue.innerHTML = `${pageIndex}/${this.reader.numPages}`
             this.reloadActivePages()
         })
@@ -122,11 +121,11 @@ export default class PdfReader extends EventTarget {
                 if(page.textContent.match(RegExp(value, "i"))) results.push(page)
                 return this.opts.searchMaxResults && results.length >= this.opts.searchMaxResults
             })
-        
+
         for(let page of results){
             if(!page.canvasClone) {
                 if(!page.canvas) {
-                    this.reader.createPageCanvas(page) 
+                    this.reader.createPageCanvas(page)
                     await page.renderTask
                 }
                 page.canvasClone = HtmlUtils.create('img', { src: page.canvas.toDataURL() })
@@ -144,7 +143,7 @@ export default class PdfReader extends EventTarget {
                 this.reloadActivePages()
             })
         }
-        
+
         if(!results.length) this.notFoundSearchResult()
     }
 
@@ -158,7 +157,7 @@ export default class PdfReader extends EventTarget {
     }
 
     handleDragStart(e){
-        this.searchResults.classList.remove('active')
+        this.searchResultsContainer.classList.remove('active')
         if(!this.viewContainer.classList.contains('draggable')) return;
         this.startDragPosition = new Vector2(e.pageX, e.pageY)
     }
@@ -173,7 +172,7 @@ export default class PdfReader extends EventTarget {
     handleDragEnd(){
         this.startDragPosition = null
     }
-    
+
     goToPage(index){
         this.flipBook.goToPage(this.opts.mode == FlipBookMode.MOBILE ? index - 1 : Math.floor(index/2))
     }
@@ -184,44 +183,44 @@ export default class PdfReader extends EventTarget {
 
         await Promise.allSettled(
             this.flipBook.getActivePages()
-            .filter(page => page)
-            .map(async pageContainer => {
-                let canvas = this.reader.createPageCanvas(pageContainer.page)
-                await pageContainer.page.renderTask
-                if(this.lastReloadQuery != timeQueried) return;
-                pageContainer.appendChild(canvas)
-                let canvases = [...pageContainer.querySelectorAll('canvas')]
-                if(canvases.length > 1) canvases[0].remove()
-                canvases.map((canvas, i)=> { if(i > 1) canvas.remove() })
-                pageContainer.classList.remove('zooming')
-                this.dispatchEvent(new PdfReaderLoadPageEvent(this, pageContainer, pageContainer.page))
-            })
+                .filter(page => page)
+                .map(async pageContainer => {
+                    let canvas = this.reader.createPageCanvas(pageContainer.page)
+                    await pageContainer.page.renderTask
+                    if(this.lastReloadQuery != timeQueried) return;
+                    pageContainer.appendChild(canvas)
+                    let canvases = [...pageContainer.querySelectorAll('canvas')]
+                    if(canvases.length > 1) canvases[0].remove()
+                    canvases.map((canvas, i)=> { if(i > 1) canvas.remove() })
+                    pageContainer.classList.remove('zooming')
+                    this.dispatchEvent(new PdfReaderLoadPageEvent(this, pageContainer, pageContainer.page))
+                })
         )
     }
 
     async setZoom(value){
-        
+
         this.reader.opts.scale = Math.max(Math.min(this.opts.maxZoom, value), this.opts.minZoom)
         this.container.toggleAttribute("data-zoom-max", this.reader.opts.scale == this.opts.maxZoom)
         this.container.toggleAttribute("data-zoom-min", this.reader.opts.scale == this.opts.minZoom)
         this.container.style.setProperty("--pdf-reader-zoom", this.reader.opts.scale)
         this.zoomValue.innerHTML = Math.floor(this.reader.opts.scale.toFixed(2) * 100) + "%"
-        
+
         this.flipBook.getActivePages().filter(page => page).map(pageContainer => {
             pageContainer.classList.add('zooming')
         })
-        
+
         this.viewContainer.classList.add('draggable')
 
         await this.flipBook.zoom(this.reader.opts.scale)
-        
+
         this.viewContainer.classList.toggle('draggable', this.viewContainer.scrollHeight > this.viewContainer.clientHeight)
 
         await this.reloadActivePages()
-        
+
         this.dispatchEvent(new PdfReaderZoomEvent(this, this.reader.opts.scale))
     }
-    
+
     async zoom(value){
         this.reader.opts.scale += value
         await this.setZoom(this.reader.opts.scale + value)
@@ -264,19 +263,19 @@ export default class PdfReader extends EventTarget {
                 this.flipBook.addPage(pageContainer)
                 pageContainer.page = page
                 page.pageContainer = pageContainer
-                
+
                 loaded++
-                
+
                 this.dispatchEvent(new PdfReaderLoadProgress(this, loaded, this.reader.numPages))
             })
         )
 
         this.bind()
-        
+
         this.dispatchEvent(new PdfReaderLoadedEvent(this))
 
         await this.updateSearchIndex()
-        
+
         this.flipBook.goToPage(0)
 
         await this.reloadActivePages()
