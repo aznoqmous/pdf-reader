@@ -199,12 +199,12 @@ export default class PdfReader extends EventTarget {
     }
 
     async setZoom(value){
-
-        this.reader.opts.scale = Math.max(Math.min(this.opts.maxZoom, value), this.opts.minZoom)
-        this.container.toggleAttribute("data-zoom-max", this.reader.opts.scale == this.opts.maxZoom)
-        this.container.toggleAttribute("data-zoom-min", this.reader.opts.scale == this.opts.minZoom)
-        this.container.style.setProperty("--pdf-reader-zoom", this.reader.opts.scale)
-        this.zoomValue.innerHTML = Math.floor(this.reader.opts.scale.toFixed(2) * 100) + "%"
+        value = Math.max(Math.min(this.opts.maxZoom, value), this.opts.minZoom)
+        this.reader.opts.scale = value
+        this.container.toggleAttribute("data-zoom-max", value == this.opts.maxZoom)
+        this.container.toggleAttribute("data-zoom-min", value == this.opts.minZoom)
+        this.container.style.setProperty("--pdf-reader-zoom", value)
+        this.zoomValue.innerHTML = Math.floor(value.toFixed(2) * 100) + "%"
 
         this.flipBook.getActivePages().filter(page => page).map(pageContainer => {
             pageContainer.classList.add('zooming')
@@ -212,17 +212,16 @@ export default class PdfReader extends EventTarget {
 
         this.viewContainer.classList.add('draggable')
 
-        await this.flipBook.zoom(this.reader.opts.scale)
+        await this.flipBook.zoom(value)
 
         this.viewContainer.classList.toggle('draggable', this.viewContainer.scrollHeight > this.viewContainer.clientHeight)
 
         await this.reloadActivePages()
 
-        this.dispatchEvent(new PdfReaderZoomEvent(this, this.reader.opts.scale))
+        this.dispatchEvent(new PdfReaderZoomEvent(this, value))
     }
 
     async zoom(value){
-        this.reader.opts.scale += value
         await this.setZoom(this.reader.opts.scale + value)
     }
 
